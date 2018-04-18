@@ -9,7 +9,11 @@ import Sensors.util.AvgTempComparator;
 import Sensors.util.Date;
 import Sensors.Interfaces.City;
 import Sensors.Interfaces.DataAnalytics;
+import Sensors.Interfaces.IHumidity;
+import Sensors.Interfaces.IPressure;
+import Sensors.Interfaces.ITempreture;
 import Sensors.Interfaces.Measurments;
+import Sensors.Interfaces.Sensor;
 import Sensors.util.Filter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,67 +28,90 @@ import java.util.TreeMap;
  */
 public class DataAnalyticsImpl implements DataAnalytics {
 
+    private ArrayList<Measurments> measurments;
+    private static DataAnalyticsImpl instance = new DataAnalyticsImpl();
+    private Filter filter = new Filter();
+    
+    private DataAnalyticsImpl() {
+        measurments = new ArrayList<>();
+    }    
+    public static DataAnalyticsImpl getInstance()
+    {
+        return instance;
+    }
+    
     @Override
-    public Map<String, Double> hottestTemperature(Date d1, Date d2) {
+    public Map<City, Sensor> hottestTemperature(Date d1, Date d2) {
 
-        ArrayList<String> cityName = Filter.citiyNames();
+        ArrayList<City> cities = filter.citiyNames();
 
-        Map<String, Double> maxTempMap = new HashMap<>();
+        Map<City, Sensor> maxTempMap = new HashMap<>();
 
-        for (int i = 0; i < cityName.size(); i++) {
-            ArrayList<Measurments> city = Filter.Cities(cityName.get(i), d1, d2);
-            Measurments max = Collections.max(city);
-            maxTempMap.put(cityName.get(i), max.getSensor().get("Tempreture").getValue());
+        for (int i = 0; i < cities.size(); i++) {
+            ArrayList<Measurments> cityMeasurmentses = filter.CityMeasurmentses(cities.get(i).getName(), d1, d2);
+            Measurments maxTemp = Collections.max(cityMeasurmentses);
+            maxTempMap.put(cities.get(i), maxTemp.getSensor().get("Tempreture"));
         }
         //System.out.println(maxTempMap);
         return maxTempMap;
     }
 
     @Override
-    public ArrayList<Double> averageMeasurements(City city, Date d1, Date d2) {
+    public Measurments averageMeasurements(City city, Date d1, Date d2) {
 
-        ArrayList<Measurments> givenCity = Filter.Cities(city.getName(), d1, d2);
-
-        ArrayList<Double> avgData = new ArrayList<>();
+        ArrayList<Measurments> cityMeasurments = filter.CityMeasurmentses(city.getName(), d1, d2);
+        
+        Measurments m = new MeasurmentsImpl();
 
         double sumTemp = 0.0;
-        for (int i = 0; i < givenCity.size(); i++) {
-            sumTemp += givenCity.get(i).getSensor().get("Tempreture").getValue();
+        for (int i = 0; i < cityMeasurments.size(); i++) {
+            sumTemp += cityMeasurments.get(i).getSensor().get("Tempreture").getValue();
         }
         double sumHum = 0.0;
-        for (int i = 0; i < givenCity.size(); i++) {
-            sumHum += givenCity.get(i).getSensor().get("Humidity").getValue();
+        for (int i = 0; i < cityMeasurments.size(); i++) {
+            sumHum += cityMeasurments.get(i).getSensor().get("Humidity").getValue();
         }
         double sumPre = 0.0;
-        for (int i = 0; i < givenCity.size(); i++) {
-            sumPre += givenCity.get(i).getSensor().get("Pressure").getValue();
+        for (int i = 0; i < cityMeasurments.size(); i++) {
+            sumPre += cityMeasurments.get(i).getSensor().get("Pressure").getValue();
         }
-        avgData.add(sumTemp / givenCity.size());
-        avgData.add(sumHum / givenCity.size());
-        avgData.add(sumPre / givenCity.size());
+        double avgTemp = (sumTemp / cityMeasurments.size());
+        double avgHum = (sumHum / cityMeasurments.size());
+        double avgPre = (sumPre / cityMeasurments.size());
         //System.out.println(avgData);
-        return avgData;
+        m.setCity(city);
+        ITempreture temp = new Tempreture();
+        temp.setValue(avgTemp);
+        m.getSensor().put("Tempreture", temp);
+        IHumidity hum = new Humidity();
+        hum.setValue(avgHum);
+        m.getSensor().put("Humidity", hum);
+        IPressure pre = new Pressure();
+        pre.setValue(avgPre);
+        m.getSensor().put("Pressure", hum);
+        return m;
     }
 
     @Override
     public Set<City> citiesByTemperature(Date d1, Date d2) {
 
-        ArrayList<String> cityName = Filter.citiyNames();
-        Map<City, Double> avgTempMap = new HashMap<>();
+        ArrayList<City> cities = filter.citiyNames();
+        Map<City, ITempreture> avgTempMap = new HashMap<>();
 
-        for (int i = 0; i < cityName.size(); i++) {
+        for (int i = 0; i < cities.size(); i++) {
             double sumTemp = 0.0;
-            ArrayList<Measurments> givenCity = Filter.Cities(cityName.get(i), d1, d2);
+            ArrayList<Measurments> givenCity = filter.CityMeasurmentses(cities.get(i).getName(), d1, d2);
             for (int j = 0; j < givenCity.size(); j++) {
                 double temp = givenCity.get(j).getSensor().get("Tempreture").getValue();
                 sumTemp += temp;
             }
             double avg = sumTemp / givenCity.size();
-            avgTempMap.put(givenCity.get(i).getCity(), avg);
+            ITempreture avgtemp = new Tempreture(avg, "c");
+            avgTempMap.put(givenCity.get(i).getCity(), avgtemp);
         }
         //System.out.println(avgTempMap);
         //sorting cities by avg and transfer the keys to a set
-        TreeMap<City, Double> sorted = new TreeMap<>(new AvgTempComparator(avgTempMap));
+        TreeMap<City, ITempreture> sorted = new TreeMap<>(new AvgTempComparator(avgTempMap));
         sorted.putAll(avgTempMap);
         //System.out.println(sorted);
         Set<City> sortedCities = sorted.keySet();
@@ -95,36 +122,36 @@ public class DataAnalyticsImpl implements DataAnalytics {
     @Override
     public ArrayList<Integer> alert(City city, Date d1, Date d2) {
 
-        ArrayList<Measurments> givenCity = Filter.Cities(city.getName(), d1, d2);
+        ArrayList<Measurments> cityMeasurments = filter.CityMeasurmentses(city.getName(), d1, d2);
 
         int dCounter = 0;
         int tCounter = 0;
         int pCounter = 0;
         int hCounter = 0;
 
-        for (int i = 0; i < givenCity.size(); i++) {
-            double temp = givenCity.get(i).getSensor().get("Tempreture").getValue();
+        for (int i = 0; i < cityMeasurments.size(); i++) {
+            double temp = cityMeasurments.get(i).getSensor().get("Tempreture").getValue();
             if (temp > 45) {
                 tCounter++;
             }
         }
 
-        for (int i = 0; i < givenCity.size(); i++) {
-            double hum = givenCity.get(i).getSensor().get("Humidity").getValue();
+        for (int i = 0; i < cityMeasurments.size(); i++) {
+            double hum = cityMeasurments.get(i).getSensor().get("Humidity").getValue();
             if (hum > 35) {
                 hCounter++;
             }
         }
 
-        for (int i = 0; i < givenCity.size(); i++) {
-            double pre = givenCity.get(i).getSensor().get("Pressure").getValue();
+        for (int i = 0; i < cityMeasurments.size(); i++) {
+            double pre = cityMeasurments.get(i).getSensor().get("Pressure").getValue();
             if (pre > 2050 || pre < 1010) {
                 pCounter++;
             }
         }
 
-        for (int i = 0; i < givenCity.size(); i++) {
-            double d = givenCity.get(i).getSensor().get("Distance").getValue();
+        for (int i = 0; i < cityMeasurments.size(); i++) {
+            double d = cityMeasurments.get(i).getSensor().get("Distance").getValue();
             if (d < 21) {
                 dCounter++;
             }

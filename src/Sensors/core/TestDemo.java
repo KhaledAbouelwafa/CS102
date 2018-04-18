@@ -7,6 +7,8 @@ package Sensors.core;
 
 import Sensors.Interfaces.City;
 import Sensors.Interfaces.GPS;
+import Sensors.Interfaces.Measurments;
+import Sensors.Interfaces.Sensor;
 import Sensors.util.Date;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -22,7 +24,7 @@ public class TestDemo
 {
     public static void main(String[] args) {
 
-        DataAnalyticsImpl f = new DataAnalyticsImpl();
+        DataAnalyticsImpl f = DataAnalyticsImpl.getInstance();
         Scanner in = new Scanner(System.in);
 
         do {
@@ -46,13 +48,13 @@ public class TestDemo
                     int month2A = in.nextInt();
                     int year2A = in.nextInt();
                     Date d2A = new Date(day2A, month2A, year2A);
-                    Map<String, Double> hottestMap = f.hottestTemperature(d1A, d2A);
-                    Iterator<String> it1 = hottestMap.keySet().iterator();
+                    Map<City, Sensor> hottestMap = f.hottestTemperature(d1A, d2A);
+                    Iterator<City> it1 = hottestMap.keySet().iterator();
                     System.out.printf("HOTTEST TEMPERATURE DURING %s AND %s\n", d1A, d2A);
                     while (it1.hasNext()) {
-                        String name = it1.next();
-                        Double max = hottestMap.get(name);
-                        System.out.printf("%-10s->\t%.2f\n", name, max);
+                        City name = it1.next();
+                        Sensor max = hottestMap.get(name);
+                        System.out.printf("%-10s->\t%.2f\n", name.getName(), max.getValue());
                     }
                     break;
                 case 2:
@@ -73,10 +75,10 @@ public class TestDemo
                     double lon1 = in.nextDouble();
                     GPS gps1 = new GPSImpl(lat1, lon1);
                     City city1 = new CityImpl(name1, gps1);
-                    ArrayList<Double> avgM = f.averageMeasurements(city1, d1B, d2B);
+                    Measurments avgM = f.averageMeasurements(city1, d1B, d2B);
                     System.out.printf("AVERAGE VALUES OF CITY %s DURING %s AND %s\n", name1, d1B, d2B);
-                    System.out.printf("%s -> %.2f C -> %.2f %% -> %.2f mb\n",
-                            name1, avgM.get(0), avgM.get(1), avgM.get(2));
+                    System.out.printf("%s -> %s -> %s -> %s\n",
+                            name1, avgM.getSensor().get("Tempreture"), avgM.getSensor().get("Humidity"), avgM.getSensor().get("Pressure"));
                     break;
                 case 3:
                     System.out.println("Enter dates as name/month/year");
@@ -138,16 +140,5 @@ public class TestDemo
             System.out.println("\n*************************************\n");
 
         } while (true);
-        /*
-        Date d11 = new Date(1, 1, 2012);
-        Date d22 = new Date(22, 6, 2017);
-        GPSImpl gps = new GPSImpl(24.7136, 46.6753);
-        CityImpl c = new CityImpl("Riyadh", gps);
-        
-        f.hottestTemperature(d11, d22);
-        f.averageMeasurements(c, d11, d22);
-        f.citiesByTemperature(d11, d22);
-        f.alert(c, d11, d22);
-         */
     }
 }

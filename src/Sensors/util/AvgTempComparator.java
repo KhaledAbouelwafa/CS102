@@ -6,6 +6,8 @@
 package Sensors.util;
 
 import Sensors.Interfaces.City;
+import Sensors.Interfaces.ITempreture;
+import Sensors.core.Tempreture;
 import java.util.Comparator;
 import java.util.Map;
 
@@ -15,9 +17,9 @@ import java.util.Map;
  */
 public class AvgTempComparator implements Comparator<City>{
 
-    private Map<City, Double> map;
+    private Map<City, ITempreture> map;
     
-    public AvgTempComparator(Map<City, Double> map)
+    public AvgTempComparator(Map<City, ITempreture> map)
     {
         this.map = map;
     }

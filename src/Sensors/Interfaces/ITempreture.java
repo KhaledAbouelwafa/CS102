@@ -9,9 +9,5 @@ package Sensors.Interfaces;
  *
  * @author khaled helal
  */
-public interface Sensor extends Comparable<Sensor>{
-    public abstract void setValue(double value);
-    public abstract void setUnit(String unit);
-    public abstract double getValue();
-    public abstract String getUnit();
+public interface ITempreture extends Sensor{
 }

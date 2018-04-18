@@ -5,10 +5,10 @@
  */
 package Sensors.util;
 
+import Sensors.Interfaces.City;
 import Sensors.Interfaces.Measurments;
 import Sensors.Interfaces.Sensor;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import Sensors.core.CityImpl;
@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  *
@@ -59,22 +61,23 @@ public class Filter
     }
     
     //return all cities in the file
-    public static ArrayList<String> citiyNames()
+    public ArrayList<City> citiyNames()
     {
         ArrayList<Measurments> measurements = readFromFile();
-        ArrayList<String> names = new ArrayList<>();
+        ArrayList<City> names ;
+        Set<City> nameSet =new TreeSet<>();
         
         for (int i = 0; i < measurements.size(); i++) 
         {
-            if(!names.contains(measurements.get(i).getCity().getName()))
-                names.add(measurements.get(i).getCity().getName());
+            nameSet.add(measurements.get(i).getCity());
         }
         
+        names = new ArrayList(nameSet);
         return names;
     }
     
     //return given city between two dates
-    public static ArrayList<Measurments> Cities(String cityName, Date d1, Date d2) 
+    public ArrayList<Measurments> CityMeasurmentses(String cityName, Date d1, Date d2) 
     {
         ArrayList<Measurments> measurements = readFromFile();
         ArrayList<Measurments> cities = new ArrayList<>();
@@ -93,22 +96,5 @@ public class Filter
         }
         return cities;
     }
-
-    // return all cities between two dates
-    public static ArrayList<Measurments> Cities(Date d1, Date d2) {
-        ArrayList<Measurments> measurements = readFromFile();
-        ArrayList<Measurments> cities = new ArrayList<>();
-        if (d2.compareTo(d1) > 0) {
-            Date temp = d2;
-            d2 = d1;
-            d1 = temp;
-        }
-
-        for (int i = 0; i < measurements.size(); i++) {
-            if (measurements.get(i).getDate().compareTo(d2) > -1 && measurements.get(i).getDate().compareTo(d1) < 0) {
-                cities.add(measurements.get(i));
-            }
-        }
-        return cities;
-    }
+    
 }

@@ -5,27 +5,61 @@
  */
 package Sensors.core;
 
+import Sensors.Interfaces.IHumidity;
+import Sensors.Interfaces.Sensor;
+
 /**
  *
  * @author khaled helal
  */
-public class Humidity extends Sensors{
+public class Humidity implements IHumidity{
+    
+    private double value;
+    private String unit;
     
     public Humidity(double value, String unit) {
-        super(value, unit);
+        setValue(value);
+        setUnit(unit);
     }
 
+    public Humidity() {
+    }
+    
     @Override
     public void setUnit(String unit) {
         if (unit.equalsIgnoreCase("P")) {
-            super.setUnit(unit);
+            this.unit = unit;
         } else {
             throw new IllegalArgumentException("wrong unit");
         }
     }
 
     @Override
+    public void setValue(double value) {
+        this.value=value;
+    }
+
+    @Override
+    public double getValue() {
+        return value;
+    }
+
+    @Override
+    public String getUnit() {
+        return unit;
+    }
+    
+    @Override
     public String toString() {
-        return super.toString();
+        return value + " " + unit;
+    }
+    
+    @Override
+    public int compareTo(Sensor t) {
+        if(this.getValue()>t.getValue())
+            return 1;
+        else if(this.getValue()<t.getValue())
+            return -1;
+        return 0;
     }
 }

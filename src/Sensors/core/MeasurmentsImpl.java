@@ -29,7 +29,9 @@ public class MeasurmentsImpl implements Measurments{
         setSensor(sensors);
         setDate(date);
     }
-    
+
+    public MeasurmentsImpl() {
+    }
     
     @Override
     public void setCity(City city) {
@@ -56,6 +58,10 @@ public class MeasurmentsImpl implements Measurments{
         return sensors;
     }
 
+    public Sensor getSensor(String name) {
+        return sensors.get(name);
+    }
+    
     @Override
     public Date getDate() {
         return date;

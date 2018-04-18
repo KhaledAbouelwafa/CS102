@@ -17,9 +17,9 @@ import java.util.TreeSet;
  */
 public interface DataAnalytics {
 
-    public abstract Map<String, Double> hottestTemperature(Date d1, Date d2);
+    public abstract Map<City, Sensor> hottestTemperature(Date d1, Date d2);
 
-    public abstract ArrayList<Double> averageMeasurements(City city, Date d1, Date d2);
+    public abstract Measurments averageMeasurements(City city, Date d1, Date d2);
 
     public abstract Set<City> citiesByTemperature(Date d1, Date d2);
 
